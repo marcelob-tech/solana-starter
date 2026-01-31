@@ -17,6 +17,7 @@
     "nft_image": "ts-node ./cluster1/nft_image.ts",
     "nft_metadata": "ts-node ./cluster1/nft_metadata.ts",
     "nft_mint": "ts-node ./cluster1/nft_mint.ts",
+    "nft_mint_workflow": "ts-node ./cluster1/nft_workflow.ts 3 https://gateway.irys.xyz/Bge7FE42NX6pemFpU95RazhWJpt4XgM6dLXZGk5kHFHf",
     "vault_init": "ts-node ./cluster1/vault_init.ts",
     "vault_deposit": "ts-node ./cluster1/vault_deposit.ts",
     "vault_withdraw": "ts-node ./cluster1/vault_withdraw.ts",

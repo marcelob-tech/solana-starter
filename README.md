@@ -73,3 +73,41 @@ Mint Address:  5s4Czt5oPFL7f3kUbPCSZtistbHXiVNjMdgDZq2a8z7B
 
 ![NFT Screenshot](image-1.png)
 
+The problem is that was so manual, i create a function that implment a mint NFT workflow, but it could be better it could be a list of images and metadata uri, for now i'm using the same image for my NFTs
+
+```bash
+npx ts-node nft_workflow.ts 3 https://gateway.irys.xyz/Bge7FE42NX6pemFpU95RazhWJpt4XgM6dLXZGk5kHFHf
+```
+
+
+ Starting workflow to mint 3 NFT(s)
+
+Using provided image URI: https://gateway.irys.xyz/Bge7FE42NX6pemFpU95RazhWJpt4XgM6dLXZGk5kHFHf
+
+--- NFT 1/3 ---
+Uploading metadata for NFT #3...
+Metadata URI: https://gateway.irys.xyz/5Kz6SRWDaj86UvrhMqb4sG4nfJRGUuKfiSG3Cqqanhmm
+🔨 Minting NFT #3...
+Succesfully Minted! TX: https://explorer.solana.com/tx/3EyAW9ERKBbDGRVvp9yZXC48FgJ7APSTa5JiZrEVhJKpTgp3HH8ofUJhKUHtduRXiEHeQVR74DVWta6bgarj2LrU?cluster=devnet
+   Mint Address: Hr859vujkUYxMp4xg4Tk6Q1qopX4B15MtzPbujpg6gct
+
+--- NFT 2/3 ---
+Uploading metadata for NFT #4...
+Metadata URI: https://gateway.irys.xyz/9QW963UUdY6NqawAiPhSYtUC33pBKSYfHefNBTVXkUc4
+🔨 Minting NFT #4...
+Succesfully Minted! TX: https://explorer.solana.com/tx/3bcEuTxsTVD92ak5Jt3ARnEQbUoqzyorkoUzXbo2WGnnLvbc9VGou3Krs12FuLw3kESf9x4tpNjMY7nmppJHdUpP?cluster=devnet
+   Mint Address: BCg4a5Khao1Y2XDzUpTTX9jpfzKsBVWjNmTMYFkbqAwz
+
+--- NFT 3/3 ---
+Uploading metadata for NFT #5...
+Metadata URI: https://gateway.irys.xyz/68BFKkn6BitaDyZ1hmCVoFwEqxpoq6p9ezA3dWUypHdK
+🔨 Minting NFT #5...
+Succesfully Minted! TX: https://explorer.solana.com/tx/3rhQGQ56hsrocLgLP3hUT5c2ENGHZZPBDpTvFSqAEBDULEbXtZgEKWFRNHTQmw7dia2EB5CfFeWDR7d5yeH8vhGH?cluster=devnet
+   Mint Address: 7v87mB8AaUWSFogAiCHviNykc9Mv5iWLAdjb5Wbd5P5t
+
+🎉 Successfully minted 3 NFT(s)!
+
+Summary:
+  #3: Hr859vujkUYxMp4xg4Tk6Q1qopX4B15MtzPbujpg6gct
+  #4: BCg4a5Khao1Y2XDzUpTTX9jpfzKsBVWjNmTMYFkbqAwz
+  #5: 7v87mB8AaUWSFogAiCHviNykc9Mv5iWLAdjb5Wbd5P5t
