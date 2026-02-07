@@ -1,0 +1,19 @@
+[package]
+name = "wba-vault-program"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+default = []
+onchain = []
+
+[dependencies]
+borsh = { version = "1", features = ["derive"] }
+solana-program = "1"
+
+# For on-chain programs, depend on SPL crates *without* their own entrypoint.
+spl-token = { version = "3", features = ["no-entrypoint"] }
+spl-associated-token-account = { version = "1", features = ["no-entrypoint"] }

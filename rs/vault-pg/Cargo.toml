@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+  "wba-vault-program",
+]
+
+[patch.crates-io]
+constant_time_eq = { path = "../vendor/constant_time_eq" }

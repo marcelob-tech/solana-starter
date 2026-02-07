@@ -2,8 +2,7 @@ import wallet from "../turbin3-wallet.json"
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults"
 import { createGenericFile, createSignerFromKeypair, signerIdentity } from "@metaplex-foundation/umi"
 import { irysUploader } from "@metaplex-foundation/umi-uploader-irys"
-import { readFile } from "fs/promises";
-import * as path from "path";
+import { readFile } from "fs";
 
 // Create a devnet connection
 const umi = createUmi('https://api.devnet.solana.com');
@@ -13,8 +12,6 @@ const signer = createSignerFromKeypair(umi, keypair);
 
 umi.use(irysUploader());
 umi.use(signerIdentity(signer));
-
-const counterPath = path.join(__dirname, "nft_counter.json");
 
 async function readCounter(): Promise<number> {
     try {
@@ -35,21 +32,27 @@ async function readCounter(): Promise<number> {
     }
 }
 
+let contador = 0
 
 (async () => {
     try {
-        const contador = await readCounter();
-        const image ="https://gateway.irys.xyz/Bge7FE42NX6pemFpU95RazhWJpt4XgM6dLXZGk5kHFHf"
+        // Follow this JSON structure
+        // https://docs.metaplex.com/programs/token-metadata/changelog/v1.0#json-structure
+
+        // const image = ???
+        const image ="https://devnet.irys.xyz/HN4YbCAqXm3VNXeyA7R9jASsrcFiG22hmj7aprj8K9xE"
         const metadata = {
-            name: `Mustashoo #${contador}`,
+            name: "Mustashoo",
             symbol: "MUST",
-            description: "The Mustashoos is a collection of 1,000 unique Mustachoo NFTs.",
+            description: "Mustashoo is a collection of 10,000 unique Mustachoo NFTs.",
             image: image,
             attributes: [
-                {trait_type: "Mustache", value: "Mustache"},
-                {trait_type: "Collection", value: "The Mustashoos" },
-                {trait_type: "Max Supply", value: "1000" },
+                {trait_type: 'Mustache', value: 'Mustache'},
+                 { "trait_type": "Collection", "value": "The Mustashoos" },
+                 { "trait_type": "Max Supply", "value": "1000" },
+                 { "trait_type": "Edition", "value": "1" }
             ],
+            external_url: "https://devnet.irys.xyz/HN4YbCAqXm3VNXeyA7R9jASsrcFiG22hmj7aprj8K9xE",
             properties: {
                 files: [
                     {
@@ -59,16 +62,7 @@ async function readCounter(): Promise<number> {
                 ]
             },
         };
-
-        // Convert metadata to JSON string and create GenericFile
-        const metadataJson = JSON.stringify(metadata);
-        const metadataFile = createGenericFile(
-            new TextEncoder().encode(metadataJson),
-            `metadata-${contador}.json`,
-            { contentType: "application/json" }
-        );
-
-        const [myUri] = await umi.uploader.upload([metadataFile]);
+        const myUri = await umi.uploader.upload([metadata]);
         console.log("Your metadata URI: ", myUri);
     }
     catch(error) {

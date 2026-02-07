@@ -3,7 +3,6 @@ import { createUmi } from "@metaplex-foundation/umi-bundle-defaults"
 import { createGenericFile, createSignerFromKeypair, signerIdentity } from "@metaplex-foundation/umi"
 import { irysUploader } from "@metaplex-foundation/umi-uploader-irys"
 import { readFile } from "fs/promises"
-import path from "path"
 
 // Create a devnet connection
 const umi = createUmi('https://api.devnet.solana.com');
@@ -17,13 +16,15 @@ umi.use(signerIdentity(signer));
 (async () => {
     try {
         //1. Load image
-        const image = await readFile(path.join(__dirname, "./mustashoo.png"));
+        const image = await readFile("./mustachoo.png");
         //2. Convert image to generic file.
-        const genericFile = createGenericFile(image, "mustashoo.png", {
-            contentType: "image/png",
+        const genericFile = createGenericFile(umi, {
+            data: image,
+            name: "mustachoo.png",
+            mimeType: "image/png",
         });
         //3. Upload image
-        const [myUri] = await umi.uploader.upload([genericFile]);
+        const [myUri] = await umi.uploader.upload(genericFile);
         console.log("Your image URI: ", myUri);
     }
     catch(error) {
