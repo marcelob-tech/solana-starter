@@ -20,7 +20,7 @@ const commitment: Commitment = "confirmed";
 const connection = new Connection("https://api.devnet.solana.com");
 
 const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
-const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
+const vaultState = new PublicKey("9HwjRzkGd5VuxtCtRcyVt4NJiVkqBVkS5tZMTkBuB4zK");
 
 // Where to receive the reclaimed lamports from vaultState.
 // Usually the owner wallet.

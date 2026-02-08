@@ -21,7 +21,7 @@ const DEFAULT_PROGRAM_ID = new PublicKey(
 );
 
 const DEFAULT_VAULT_STATE = new PublicKey(
-  "CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG",
+  "9HwjRzkGd5VuxtCtRcyVt4NJiVkqBVkS5tZMTkBuB4zK",
 );
 
 const keypair = Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -360,9 +360,10 @@ async function closeVaultState(
   });
 
   if (nonZeroTokenAccounts.length > 0) {
-    throw new Error(
+    console.error(
       "Vault still has non-zero token balances; refusing to close vaultState",
     );
+    return;
   }
 
   await closeVaultState(connection, programId, vaultState, keypair.publicKey);

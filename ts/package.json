@@ -27,7 +27,8 @@
     "vault_withdraw_nft": "ts-node ./cluster1/vault_withdraw_nft.ts",
     "vault_inspect": "ts-node ./cluster1/vault_inspect.ts",
     "vault_close_workflow": "ts-node ./cluster1/vault_close_workflow.ts",
-    "vault_close": "ts-node ./cluster1/vault_close.ts"
+    "vault_close": "ts-node ./cluster1/vault_close.ts",
+    "test": "jest"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.31.1",
@@ -44,6 +45,11 @@
     "typescript": "^5.3.2"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/jest": "^29.5.12",
+    "chai": "^4.4.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.1"
   }
 }

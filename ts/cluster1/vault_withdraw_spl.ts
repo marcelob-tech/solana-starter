@@ -26,7 +26,7 @@ const commitment: Commitment = "finalized";
 const connection = new Connection("https://api.devnet.solana.com");
 
 const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
-const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
+const vaultState = new PublicKey("9HwjRzkGd5VuxtCtRcyVt4NJiVkqBVkS5tZMTkBuB4zK");
 
 // SPL Mint address (set this to the token you deposited)
 const mint = new PublicKey("GKx8cKAqVA57oMd87YUtUQtLefDxHfVW2g23jR9cDGbS");
