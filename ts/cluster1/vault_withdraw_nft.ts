@@ -4,16 +4,12 @@ import {
   SystemProgram,
   PublicKey,
   Commitment,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import {
-  Program,
-  Wallet,
-  AnchorProvider,
-  Address,
-  BN,
-} from "@coral-xyz/anchor";
-import { WbaVault, IDL } from "./programs/wba_vault";
-import wallet from "./wallet/turbin3-wallet.json";
+import wallet from "../turbin3-wallet.json";
+
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -29,16 +25,11 @@ const commitment: Commitment = "finalized";
 // Create a devnet connection
 const connection = new Connection("https://api.devnet.solana.com");
 
-// Create our anchor provider
-const provider = new AnchorProvider(connection, new Wallet(keypair), {
-  commitment,
-});
-
-// Create our program
-const program = new Program<WbaVault>(IDL, "<address>" as Address, provider);
+const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
 
 // Create a random keypair
-const vaultState = new PublicKey("<address>");
+const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
+
 
 // Create the PDA for our enrollment account
 // Seeds are "auth", vaultState
@@ -49,7 +40,7 @@ const vaultState = new PublicKey("<address>");
 // const vault = ???
 
 // Mint address
-const mint = new PublicKey("<address>");
+const mint = new PublicKey("DPSMu4DeRwdjR7mTpKxQp7jxXFAZLf4FxdHsQByFHNFk");
 
 // Execute our enrollment transaction
 (async () => {
@@ -71,25 +62,58 @@ const mint = new PublicKey("<address>");
       metadataProgram,
     )[0];
 
-    // Get the token account of the fromWallet address, and if it does not exist, create it
-    // const ownerAta = await getOrCreateAssociatedTokenAccount(
-    //     ???
-    // );
+    // Create the PDA for our enrollment account
+    const [vaultAuth] = PublicKey.findProgramAddressSync(
+      [Buffer.from("auth"), vaultState.toBuffer()],
+      programId,
+    );
 
-    // Get the token account of the fromWallet address, and if it does not exist, create it
-    // const vaultAta = await getOrCreateAssociatedTokenAccount(
-    //     ???
-    // );
+    const vaultAta = await getOrCreateAssociatedTokenAccount(
+      connection,
+      keypair,
+      mint,
+      vaultAuth,
+      true,
+    );
 
-    // const signature = await program.methods
-    // .withdrawNft()
-    // .accounts({
-    //    ???
-    // })
-    // .signers([
-    //     keypair
-    // ]).rpc();
-    // console.log(`Deposit success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    const ownerAta = await getOrCreateAssociatedTokenAccount(
+      connection,
+      keypair,
+      mint,
+      keypair.publicKey,
+      false,
+    );
+
+    // WithdrawNft discriminant = 6u8 (see Rust enum order)
+    const data = Buffer.from([6]);
+
+    const ix = new TransactionInstruction({
+      programId,
+      data,
+      keys: [
+        { pubkey: keypair.publicKey, isSigner: true, isWritable: true },
+        { pubkey: ownerAta.address, isSigner: false, isWritable: true },
+        { pubkey: vaultState, isSigner: false, isWritable: false },
+        { pubkey: vaultAuth, isSigner: false, isWritable: false },
+        { pubkey: vaultAta.address, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: false, isWritable: false },
+        { pubkey: metadataAccount, isSigner: false, isWritable: false },
+        { pubkey: masterEdition, isSigner: false, isWritable: false },
+        { pubkey: metadataProgram, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+    });
+
+    const tx = new Transaction().add(ix);
+    const signature = await sendAndConfirmTransaction(connection, tx, [keypair], {
+      commitment,
+    });
+
+    console.log(
+      `Withdraw NFT success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`,
+    );
   } catch (e) {
     console.error(`Oops, something went wrong: ${e}`);
   }

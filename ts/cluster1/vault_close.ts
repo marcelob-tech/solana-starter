@@ -4,16 +4,11 @@ import {
   SystemProgram,
   PublicKey,
   Commitment,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import {
-  Program,
-  Wallet,
-  AnchorProvider,
-  Address,
-  BN,
-} from "@coral-xyz/anchor";
-import { WbaVault, IDL } from "./programs/wba_vault";
-import wallet from "./wallet/turbin3-wallet.json";
+import wallet from "../turbin3-wallet.json";
 
 // Import our keypair from the wallet file
 const keypair = Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -24,31 +19,36 @@ const commitment: Commitment = "confirmed";
 // Create a devnet connection
 const connection = new Connection("https://api.devnet.solana.com");
 
-// Create our anchor provider
-const provider = new AnchorProvider(connection, new Wallet(keypair), {
-  commitment,
-});
+const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
+const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
 
-// Create our program
-const program = new Program<WbaVault>(IDL, "<address>" as Address, provider);
-
-// Create a random keypair
-const vaultState = new PublicKey("<address>");
-
-// Create a random keypair
-// const closeVaultState = ???
+// Where to receive the reclaimed lamports from vaultState.
+// Usually the owner wallet.
+const closeVaultState = keypair.publicKey;
 
 (async () => {
   try {
-    // const signature = await program.methods
-    // .closeAccount()
-    // .accounts({
-    //     ???
-    // })
-    // .signers([
-    //     keypair
-    // ]).rpc();
-    // console.log(`Close success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    // CloseAccount discriminant = 7u8 (see Rust enum order)
+    const data = Buffer.from([7]);
+
+    const ix = new TransactionInstruction({
+      programId,
+      data,
+      keys: [
+        { pubkey: keypair.publicKey, isSigner: true, isWritable: true },
+        { pubkey: closeVaultState, isSigner: false, isWritable: true },
+        { pubkey: vaultState, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+    });
+
+    const tx = new Transaction().add(ix);
+    const signature = await sendAndConfirmTransaction(connection, tx, [keypair], {
+      commitment,
+    });
+    console.log(
+      `Close success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`,
+    );
   } catch (e) {
     console.error(`Oops, something went wrong: ${e}`);
   }

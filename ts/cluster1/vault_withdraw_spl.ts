@@ -4,16 +4,17 @@ import {
   SystemProgram,
   PublicKey,
   Commitment,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
+import wallet from "../turbin3-wallet.json";
+
 import {
-  Program,
-  Wallet,
-  AnchorProvider,
-  Address,
-  BN,
-} from "@coral-xyz/anchor";
-import { WbaVault, IDL } from "./programs/wba_vault";
-import wallet from "./wallet/turbin3-wallet.json";
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  getOrCreateAssociatedTokenAccount,
+} from "@solana/spl-token";
 
 // Import our keypair from the wallet file
 const keypair = Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -24,38 +25,65 @@ const commitment: Commitment = "finalized";
 // Create a devnet connection
 const connection = new Connection("https://api.devnet.solana.com");
 
-// Create our anchor provider
-const provider = new AnchorProvider(connection, new Wallet(keypair), {
-  commitment,
-});
+const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
+const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
 
-// Create our program
-const program = new Program<WbaVault>(IDL, "<address>" as Address, provider);
+// SPL Mint address (set this to the token you deposited)
+const mint = new PublicKey("GKx8cKAqVA57oMd87YUtUQtLefDxHfVW2g23jR9cDGbS");
 
-// Create a random keypair
-const vaultState = new PublicKey("<address>");
-  // Create the PDA for our enrollment account
-  // Seeds are "auth", vaultState
-  // const vaultAuth = ???
+(async () => {
+  try {
+    const [vaultAuth] = PublicKey.findProgramAddressSync(
+      [Buffer.from("auth"), vaultState.toBuffer()],
+      programId,
+    );
 
-  // Create the vault key
-  // Seeds are "vault", vaultAuth
-  // const vault = ???
+    const vaultAta = await getOrCreateAssociatedTokenAccount(
+      connection,
+      keypair,
+      mint,
+      vaultAuth,
+      true,
+    );
 
-  // Execute our enrollment transaction
-  async () => {
-    try {
-      // const signature = await program.methods
-      // .withdraw(new BN(<number>))
-      // .accounts({
-      //    ???
-      // })
-      // .signers([
-      //     keypair
-      // ]).rpc();
-      // console.log(`Withdraw success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`);
-    } catch (e) {
-      console.error(`Oops, something went wrong: ${e}`);
-    }
+    const ownerAta = await getOrCreateAssociatedTokenAccount(
+      connection,
+      keypair,
+      mint,
+      keypair.publicKey,
+      false,
+    );
+
+    const amount = 30_000n;
+    const data = Buffer.alloc(1 + 8);
+    data.writeUInt8(4, 0); // WithdrawSpl discriminant
+    data.writeBigUInt64LE(amount, 1);
+
+    const ix = new TransactionInstruction({
+      programId,
+      data,
+      keys: [
+        { pubkey: keypair.publicKey, isSigner: true, isWritable: true },
+        { pubkey: ownerAta.address, isSigner: false, isWritable: true },
+        { pubkey: vaultState, isSigner: false, isWritable: false },
+        { pubkey: vaultAuth, isSigner: false, isWritable: false },
+        { pubkey: vaultAta.address, isSigner: false, isWritable: true },
+        { pubkey: mint, isSigner: false, isWritable: false },
+        { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+    });
+
+    const tx = new Transaction().add(ix);
+    const signature = await sendAndConfirmTransaction(connection, tx, [keypair], {
+      commitment,
+    });
+
+    console.log(
+      `Withdraw SPL success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`,
+    );
+  } catch (e) {
+    console.error(`Oops, something went wrong: ${e}`);
   }
-)();
+})();

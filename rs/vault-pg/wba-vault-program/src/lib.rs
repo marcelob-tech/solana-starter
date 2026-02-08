@@ -136,6 +136,9 @@ fn initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let vault = next_account_info(&mut accounts_iter)?;
     let system_program = next_account_info(&mut accounts_iter)?;
 
+    msg!("Initialize: system-owned vault mode");
+    msg!("Initialize: vault PDA {} owner {} lamports {}", vault.key, vault.owner, vault.lamports());
+
     if !owner.is_signer {
         return Err(ProgramError::MissingRequiredSignature);
     }
@@ -180,11 +183,22 @@ fn initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
         )?;
     }
 
-    // Create vault PDA account (program-owned, holds lamports)
-    if vault.owner != program_id {
+    // The vault PDA must be SYSTEM-owned so we can withdraw SOL via
+    // invoke_signed(system_instruction::transfer).
+    // If it already exists but is NOT system-owned, we cannot fix it in-place;
+    // you must initialize a fresh vaultState (which derives a fresh vault PDA).
+    if vault.lamports() > 0 && vault.owner != &solana_program::system_program::id() {
+        msg!("Vault PDA already exists but is not system-owned. Re-initialize with a new vaultState.");
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+
+    // Create vault PDA account (system-owned, holds lamports)
+    if vault.lamports() == 0 && vault.data_is_empty() {
         let rent = Rent::get()?;
         let space = 0usize;
         let lamports = rent.minimum_balance(space);
+
+        msg!("Initialize: creating vault PDA as system-owned");
 
         invoke_signed(
             &system_instruction::create_account(
@@ -192,11 +206,13 @@ fn initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
                 vault.key,
                 lamports,
                 space as u64,
-                program_id,
+                &solana_program::system_program::id(),
             ),
             &[owner.clone(), vault.clone(), system_program.clone()],
             &[&[b"vault", vault_auth.key.as_ref(), &[vault_bump]]],
         )?;
+
+        msg!("Initialize: vault PDA created; owner {} lamports {}", vault.owner, vault.lamports());
     }
 
     let state = Vault {

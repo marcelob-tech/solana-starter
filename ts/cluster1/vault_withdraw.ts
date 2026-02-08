@@ -4,16 +4,11 @@ import {
   SystemProgram,
   PublicKey,
   Commitment,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
 } from "@solana/web3.js";
-import {
-  Program,
-  Wallet,
-  AnchorProvider,
-  Address,
-  BN,
-} from "@coral-xyz/anchor";
-import { WbaVault, IDL } from "./programs/wba_vault";
-import wallet from "./wallet/turbin3-wallet.json";
+import wallet from "../turbin3-wallet.json";
 
 // Import our keypair from the wallet file
 const keypair = Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -24,36 +19,56 @@ const commitment: Commitment = "confirmed";
 // Create a devnet connection
 const connection = new Connection("https://api.devnet.solana.com");
 
-// Create our anchor provider
-const provider = new AnchorProvider(connection, new Wallet(keypair), {
-  commitment,
-});
-
 // Create our program
-const program = new Program<WbaVault>(IDL, "<address>" as Address, provider);
+const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
 
 // Create a random keypair
-const vaultState = new PublicKey("<address>");
+const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
+
 // Create the PDA for our enrollment account
 // Seeds are "auth", vaultState
-// const vaultAuth = ???
+const [vaultAuth] = PublicKey.findProgramAddressSync(
+  [Buffer.from("auth"), vaultState.toBuffer()],
+  programId,
+);
+
 
 // Create the vault key
+const [vault] = PublicKey.findProgramAddressSync(
+  [Buffer.from("vault"), vaultAuth.toBuffer()],
+  programId,
+);
 // Seeds are "vault", vaultAuth
 // const vault = ???
 
 // Execute our enrollment transaction
+
+console.log('vaultpda: ', vault.toBase58());
+
 (async () => {
   try {
-    // const signature = await program.methods
-    // .withdraw(new BN(<number>))
-    // .accounts({
-    //     ???
-    // })
-    // .signers([
-    //     keypair
-    // ]).rpc();
-    // console.log(`Withdraw success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    const amount = 70_000_000n;
+    const data = Buffer.alloc(1 + 8);
+    data.writeUInt8(2, 0);
+    data.writeBigUInt64LE(amount, 1);
+
+    const ix = new TransactionInstruction({
+      programId,
+      data,
+      keys: [
+        { pubkey: keypair.publicKey, isSigner: true, isWritable: true },
+        { pubkey: vaultState, isSigner: false, isWritable: false },
+        { pubkey: vaultAuth, isSigner: false, isWritable: false },
+        { pubkey: vault, isSigner: false, isWritable: true },
+        { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      ],
+    });
+
+    const tx = new Transaction().add(ix);
+    const signature = await sendAndConfirmTransaction(connection, tx, [keypair], {
+      commitment,
+    });
+    console.log(`Withdraw success! Check out your TX here:\n\nhttps://explorer.solana.com/tx/${signature}?cluster=devnet`);
   } catch (e) {
     console.error(`Oops, something went wrong: ${e}`);
   }

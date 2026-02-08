@@ -25,6 +25,8 @@
     "vault_withdraw_spl": "ts-node ./cluster1/vault_withdraw_spl.ts",
     "vault_deposit_nft": "ts-node ./cluster1/vault_deposit_nft.ts",
     "vault_withdraw_nft": "ts-node ./cluster1/vault_withdraw_nft.ts",
+    "vault_inspect": "ts-node ./cluster1/vault_inspect.ts",
+    "vault_close_workflow": "ts-node ./cluster1/vault_close_workflow.ts",
     "vault_close": "ts-node ./cluster1/vault_close.ts"
   },
   "dependencies": {

@@ -37,7 +37,7 @@ const provider = new AnchorProvider(connection, new Wallet(keypair), {
 const programId = new PublicKey("26fuYGrUBSa5wjzeUNu42MaQQzraX4kfchtTM9NTUKbM");
 
 // Create a random keypair
-const vaultState = new PublicKey("FZu7gTVjTd8Be9t8d5td2difYMztCgb6MymTvKDCZLDN");
+const vaultState = new PublicKey("CCNyjjidjwSP1wicGryxp5eXa7mXvs3aNdynbESwnwEG");
 
 // Create the PDA for our enrollment account
 const [vaultAuth] = PublicKey.findProgramAddressSync(
@@ -53,7 +53,7 @@ const [vault] = PublicKey.findProgramAddressSync(
 );
 
 // Mint address
-const mint = new PublicKey("7LkMnTfZaeJcBhvem84dLArtJP3TrVeAtcuCxZusDs44");
+const mint = new PublicKey("DPSMu4DeRwdjR7mTpKxQp7jxXFAZLf4FxdHsQByFHNFk");
 
 // Execute our deposit transaction
 (async () => {
